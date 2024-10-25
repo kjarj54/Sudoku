@@ -10,9 +10,9 @@ Board::Board() {
 
 void Board::generateNewPuzzle() {
     // Simple puzzle generation logic for demonstration
-    std::srand(std::time(0));
+    srand(time(0));
     for (int i = 0; i < 9; ++i) {
-        int num = (std::rand() % 9) + 1;
+        int num = (rand() % 9) + 1;
         if (isSafe(i, i, num)) {
             grid[i][i] = num;
         }
@@ -40,9 +40,9 @@ bool Board::solve() {
 void Board::display() const {
     for (const auto &row : grid) {
         for (int num : row) {
-            std::cout << num << " ";
+            cout << num << " ";
         }
-        std::cout << std::endl;
+        cout << endl;
     }
 }
 
@@ -85,10 +85,10 @@ bool Board::findEmptyLocation(int &row, int &col) const {
     }
     return false;
 }
-const std::array<std::array<int, 9>, 9>& Board::getGrid() const {
+const array<array<int, 9>, 9>& Board::getGrid() const {
     return grid;
 }
 
-std::array<std::array<int, 9>, 9>& Board::getGrid() {
+array<array<int, 9>, 9>& Board::getGrid() {
     return grid;
 }

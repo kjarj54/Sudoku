@@ -32,15 +32,27 @@ void Game::processEvents() {
 void Game::handlePlayerInput(sf::Keyboard::Key key) {
     if (key == sf::Keyboard::Up) {
         selectedRow = (selectedRow + 8) % 9;
-    } else if (key == sf::Keyboard::Down) {
+    }
+    else if (key == sf::Keyboard::Down) {
         selectedRow = (selectedRow + 1) % 9;
-    } else if (key == sf::Keyboard::Left) {
+    }
+    else if (key == sf::Keyboard::Left) {
         selectedCol = (selectedCol + 8) % 9;
-    } else if (key == sf::Keyboard::Right) {
+    }
+    else if (key == sf::Keyboard::Right) {
         selectedCol = (selectedCol + 1) % 9;
-    } else if (key >= sf::Keyboard::Num1 && key <= sf::Keyboard::Num9) {
+    }
+    else if (key >= sf::Keyboard::Num1 && key <= sf::Keyboard::Num9) {
         int num = key - sf::Keyboard::Num1 + 1;
-        board.getGrid()[selectedRow][selectedCol] = num;
+
+        // Convert selectedRow and selectedCol to the appropriate block and inner indices
+        int blockRow = selectedRow / 3;
+        int blockCol = selectedCol / 3;
+        int innerRow = selectedRow % 3;
+        int innerCol = selectedCol % 3;
+
+        // Assign the number to the specific cell in the grid
+        board.getGrid()[blockRow][blockCol][innerRow][innerCol] = num;
     }
 }
 
@@ -70,12 +82,17 @@ void Game::drawGrid() {
 
 void Game::drawNumbers() {
     const auto& grid = board.getGrid();
-    for (int i = 0; i < 9; ++i) {
-        for (int j = 0; j < 9; ++j) {
-            if (grid[i][j] != 0) {
-                text.setString(std::to_string(grid[i][j]));
-                text.setPosition(50 + j * 60 + 20, 50 + i * 60 + 10);
-                window.draw(text);
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int bi = 0; bi < 3; ++bi) {
+                for (int bj = 0; bj < 3; ++bj) {
+                    int num = grid[i][j][bi][bj];
+                    if (num != 0) {
+                        text.setString(std::to_string(num));
+                        text.setPosition(50 + (j * 3 + bj) * 60 + 20, 50 + (i * 3 + bi) * 60 + 10);
+                        window.draw(text);
+                    }
+                }
             }
         }
     }

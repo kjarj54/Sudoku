@@ -16,6 +16,8 @@ private:
     void drawGrid();
     void drawNumbers();
     void handlePlayerInput(sf::Keyboard::Key key);
+    void initializeButtons();
+    void handleMouseClick(int x, int y);
 
     sf::RenderWindow window;
     sf::Font font;
@@ -24,6 +26,14 @@ private:
     Board board;
     int selectedRow;
     int selectedCol;
+
+    bool showMenu;
+    sf::RectangleShape newGameButton;
+    sf::Text newGameText;
+    sf::RectangleShape loadGameButton;
+    sf::Text loadGameText;
+    sf::RectangleShape solveButton;
+    sf::Text solveText;
 };
 
 #endif // GAME_H

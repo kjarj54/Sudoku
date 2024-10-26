@@ -2,14 +2,49 @@
 #include <iostream>
 
 Game::Game() : window(sf::VideoMode(640, 600), "Sudoku Game"), selectedRow(0), selectedCol(0) {
-    board.generateNewPuzzle();
     if (!font.loadFromFile("arial.ttf")) {
         std::cerr << "Error loading font 'arial.ttf'\n";
     }
     text.setFont(font);
     text.setCharacterSize(24);
     text.setFillColor(sf::Color::Black);
+
+    showMenu = true; // Indicamos que iniciamos en la pantalla de menú
+    initializeButtons();
 }
+
+void Game::initializeButtons() {
+    // Botón para Nuevo Juego
+    newGameButton.setSize(sf::Vector2f(200, 50));
+    newGameButton.setFillColor(sf::Color::Blue);
+    newGameButton.setPosition(220, 200);
+
+    newGameText.setFont(font);
+    newGameText.setString("Nuevo Juego");
+    newGameText.setCharacterSize(24);
+    newGameText.setPosition(250, 210);
+
+    // Botón para Cargar Juego
+    loadGameButton.setSize(sf::Vector2f(200, 50));
+    loadGameButton.setFillColor(sf::Color::Green);
+    loadGameButton.setPosition(220, 300);
+
+    loadGameText.setFont(font);
+    loadGameText.setString("Cargar Sudoku");
+    loadGameText.setCharacterSize(24);
+    loadGameText.setPosition(240, 310);
+
+    // Botón para resolver
+    solveButton.setSize(sf::Vector2f(100, 30));
+    solveButton.setFillColor(sf::Color::Red);
+    solveButton.setPosition(500, 20);
+
+    solveText.setFont(font);
+    solveText.setString("Solve");
+    solveText.setCharacterSize(20);
+    solveText.setPosition(510, 25);
+}
+
 
 void Game::run() {
     while (window.isOpen()) {
@@ -25,9 +60,30 @@ void Game::processEvents() {
         if (event.type == sf::Event::Closed) {
             window.close();
         }
-        else if (event.type == sf::Event::KeyPressed) {
+        else if (event.type == sf::Event::MouseButtonPressed) {
+            handleMouseClick(event.mouseButton.x, event.mouseButton.y);
+        }
+        else if (!showMenu && event.type == sf::Event::KeyPressed) {
             handlePlayerInput(event.key.code);
         }
+    }
+}
+
+
+// Manejador de clics
+void Game::handleMouseClick(int x, int y) {
+    if (showMenu) {
+        if (newGameButton.getGlobalBounds().contains(x, y)) {
+            board.generateNewPuzzle();
+            showMenu = false;
+        }
+        else if (loadGameButton.getGlobalBounds().contains(x, y)) {
+            // Aquí agregarías la lógica para cargar un Sudoku desde un archivo
+            showMenu = false;
+        }
+    }
+    else if (solveButton.getGlobalBounds().contains(x, y)) {
+        board.solve();
     }
 }
 
@@ -64,8 +120,20 @@ void Game::update() {
 
 void Game::render() {
     window.clear(sf::Color::White);
-    drawGrid();
-    drawNumbers();
+
+    if (showMenu) {
+        window.draw(newGameButton);
+        window.draw(newGameText);
+        window.draw(loadGameButton);
+        window.draw(loadGameText);
+    }
+    else {
+        drawGrid();
+        drawNumbers();
+        window.draw(solveButton);
+        window.draw(solveText);
+    }
+
     window.display();
 }
 

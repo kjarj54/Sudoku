@@ -1,9 +1,10 @@
 #include "Game.h"
+#include <iostream>
 
 Game::Game() : window(sf::VideoMode(640, 600), "Sudoku Game"), selectedRow(0), selectedCol(0) {
     board.generateNewPuzzle();
     if (!font.loadFromFile("arial.ttf")) {
-        // Handle error
+        std::cerr << "Error loading font 'arial.ttf'\n";
     }
     text.setFont(font);
     text.setCharacterSize(24);
@@ -23,7 +24,8 @@ void Game::processEvents() {
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
-        } else if (event.type == sf::Event::KeyPressed) {
+        }
+        else if (event.type == sf::Event::KeyPressed) {
             handlePlayerInput(event.key.code);
         }
     }
@@ -51,8 +53,8 @@ void Game::handlePlayerInput(sf::Keyboard::Key key) {
         int innerRow = selectedRow % 3;
         int innerCol = selectedCol % 3;
 
-        // Assign the number to the specific cell in the grid
-        board.getGrid()[blockRow][blockCol][innerRow][innerCol] = num;
+        // Asigna el número a la celda específica usando la estructura CellBlock
+        board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol) = num;
     }
 }
 
@@ -86,7 +88,7 @@ void Game::drawNumbers() {
         for (int j = 0; j < 3; ++j) {
             for (int bi = 0; bi < 3; ++bi) {
                 for (int bj = 0; bj < 3; ++bj) {
-                    int num = grid[i][j][bi][bj];
+                    int num = grid[i][j].getCell(bi, bj);  // Acceso mediante getCell
                     if (num != 0) {
                         text.setString(std::to_string(num));
                         text.setPosition(50 + (j * 3 + bj) * 60 + 20, 50 + (i * 3 + bi) * 60 + 10);
@@ -97,9 +99,9 @@ void Game::drawNumbers() {
         }
     }
 
-    // Highlight the selected cell
+    // Resalta la celda seleccionada
     sf::RectangleShape highlight(sf::Vector2f(60, 60));
-    highlight.setFillColor(sf::Color(0, 0, 255, 50)); // Semi-transparent blue
+    highlight.setFillColor(sf::Color(0, 0, 255, 50)); // Azul semi-transparente
     highlight.setPosition(50 + selectedCol * 60, 50 + selectedRow * 60);
     window.draw(highlight);
 }

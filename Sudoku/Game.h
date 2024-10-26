@@ -1,5 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
+
 #include <SFML/Graphics.hpp>
 #include "Board.h"
 
@@ -7,6 +8,7 @@ class Game {
 public:
     Game();
     void run();
+
 private:
     void processEvents();
     void update();
@@ -16,10 +18,10 @@ private:
     void handlePlayerInput(sf::Keyboard::Key key);
 
     sf::RenderWindow window;
-    Board board;
     sf::Font font;
     sf::Text text;
 
+    Board board;
     int selectedRow;
     int selectedCol;
 };

@@ -1,12 +1,16 @@
 #include "Board.h"
-#include <iostream>
 #include <cstdlib>
 #include <ctime>
 
 Board::Board() {
+    // Inicializamos cada bloque en 0 usando CellBlock
     for (auto& blockRow : grid) {
         for (auto& block : blockRow) {
-            block.fill({ 0 });
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {
+                    block.getCell(i, j) = 0;
+                }
+            }
         }
     }
 }
@@ -19,7 +23,7 @@ void Board::generateNewPuzzle() {
             int row = rand() % 3;
             int col = rand() % 3;
             if (isSafe(blockRow * 3 + row, blockCol * 3 + col, num)) {
-                grid[blockRow][blockCol][row][col] = num;
+                grid[blockRow][blockCol].getCell(row, col) = num;
             }
         }
     }
@@ -38,11 +42,11 @@ bool Board::solve() {
 
     for (int num = 1; num <= 9; num++) {
         if (isSafe(row, col, num)) {
-            grid[blockRow][blockCol][innerRow][innerCol] = num;
+            grid[blockRow][blockCol].getCell(innerRow, innerCol) = num;
             if (solve()) {
                 return true;
             }
-            grid[blockRow][blockCol][innerRow][innerCol] = 0;
+            grid[blockRow][blockCol].getCell(innerRow, innerCol) = 0;
         }
     }
     return false;
@@ -53,10 +57,10 @@ void Board::display() const {
         for (int innerRow = 0; innerRow < 3; ++innerRow) {
             for (int blockCol = 0; blockCol < 3; ++blockCol) {
                 for (int innerCol = 0; innerCol < 3; ++innerCol) {
-                    cout << grid[blockRow][blockCol][innerRow][innerCol] << " ";
+                    std::cout << grid[blockRow][blockCol].getCell(innerRow, innerCol) << " ";
                 }
             }
-            cout << endl;
+            std::cout << std::endl;
         }
     }
 }
@@ -69,8 +73,8 @@ bool Board::isSafe(int row, int col, int num) const {
 
     // Verificar fila y columna
     for (int x = 0; x < 9; ++x) {
-        if (grid[row / 3][x / 3][row % 3][x % 3] == num ||
-            grid[x / 3][col / 3][x % 3][col % 3] == num) {
+        if (grid[row / 3][x / 3].getCell(row % 3, x % 3) == num ||
+            grid[x / 3][col / 3].getCell(x % 3, col % 3) == num) {
             return false;
         }
     }
@@ -80,7 +84,7 @@ bool Board::isSafe(int row, int col, int num) const {
     int startCol = col / 3;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            if (grid[startRow][startCol][i][j] == num) {
+            if (grid[startRow][startCol].getCell(i, j) == num) {
                 return false;
             }
         }
@@ -94,7 +98,7 @@ bool Board::findEmptyLocation(int& row, int& col) const {
         for (int blockCol = 0; blockCol < 3; ++blockCol) {
             for (int innerRow = 0; innerRow < 3; ++innerRow) {
                 for (int innerCol = 0; innerCol < 3; ++innerCol) {
-                    if (grid[blockRow][blockCol][innerRow][innerCol] == 0) {
+                    if (grid[blockRow][blockCol].getCell(innerRow, innerCol) == 0) {
                         row = blockRow * 3 + innerRow;
                         col = blockCol * 3 + innerCol;
                         return true;
@@ -106,10 +110,10 @@ bool Board::findEmptyLocation(int& row, int& col) const {
     return false;
 }
 
-const array<array<array<array<int, 3>, 3>, 3>, 3>& Board::getGrid() const {
+const std::array<std::array<CellBlock, 3>, 3>& Board::getGrid() const {
     return grid;
 }
 
-array<array<array<array<int, 3>, 3>, 3>, 3>& Board::getGrid() {
+std::array<std::array<CellBlock, 3>, 3>& Board::getGrid() {
     return grid;
 }

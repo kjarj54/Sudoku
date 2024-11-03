@@ -18,6 +18,9 @@ private:
     void handlePlayerInput(sf::Keyboard::Key key);
     void initializeButtons();
     void handleMouseClick(int x, int y);
+    void saveGame();
+    void loadGame();
+
 
     sf::RenderWindow window;
     sf::Font font;
@@ -32,6 +35,8 @@ private:
     sf::Text newGameText;
     sf::RectangleShape loadGameButton;
     sf::Text loadGameText;
+    sf::RectangleShape saveGameButton; // Botón de guardar
+    sf::Text saveGameText;
     sf::RectangleShape solveButton;
     sf::Text solveText;
 };

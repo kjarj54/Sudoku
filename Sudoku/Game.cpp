@@ -1,9 +1,12 @@
 #include "Game.h"
 #include <iostream>
+#include <fstream>
+
+using namespace std;
 
 Game::Game() : window(sf::VideoMode(640, 600), "Sudoku Game"), selectedRow(0), selectedCol(0) {
     if (!font.loadFromFile("arial.ttf")) {
-        std::cerr << "Error loading font 'arial.ttf'\n";
+        cerr << "Error loading font 'arial.ttf'\n";
     }
     text.setFont(font);
     text.setCharacterSize(24);
@@ -11,6 +14,47 @@ Game::Game() : window(sf::VideoMode(640, 600), "Sudoku Game"), selectedRow(0), s
 
     showMenu = true; // Indicamos que iniciamos en la pantalla de menú
     initializeButtons();
+}
+
+void Game::saveGame() {
+    std::ofstream outFile("sudoku_save.txt");
+    if (!outFile) {
+        std::cerr << "Error al abrir el archivo para guardar el juego.\n";
+        return;
+    }
+    std::cout << "Guardando juego...\n"; // Mensaje de depuración
+    const auto& grid = board.getGrid();
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int bi = 0; bi < 3; ++bi) {
+                for (int bj = 0; bj < 3; ++bj) {
+                    outFile << grid[i][j].getCell(bi, bj) << " ";
+                }
+            }
+            outFile << "\n";
+        }
+    }
+    outFile.close();
+    std::cout << "Juego guardado exitosamente.\n"; // Confirmación de éxito
+}
+
+void Game::loadGame() {
+    std::ifstream inFile("sudoku_save.txt");
+    if (!inFile) {
+        std::cerr << "Error al abrir el archivo para cargar el juego.\n";
+        return;
+    }
+    auto& grid = board.getGrid();
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int bi = 0; bi < 3; ++bi) {
+                for (int bj = 0; bj < 3; ++bj) {
+                    inFile >> grid[i][j].getCell(bi, bj);
+                }
+            }
+        }
+    }
+    inFile.close();
 }
 
 void Game::initializeButtons() {
@@ -34,11 +78,19 @@ void Game::initializeButtons() {
     loadGameText.setCharacterSize(24);
     loadGameText.setPosition(240, 310);
 
-    // Botón para resolver
+    // Botón para Guardar Juego
+    saveGameButton.setSize(sf::Vector2f(100, 30));
+    saveGameButton.setFillColor(sf::Color::Magenta);
+    saveGameButton.setPosition(350, 20);
+    saveGameText.setFont(font);
+    saveGameText.setString("Guardar");
+    saveGameText.setCharacterSize(20);
+    saveGameText.setPosition(360, 25);
+
+    // Botón para Resolver
     solveButton.setSize(sf::Vector2f(100, 30));
     solveButton.setFillColor(sf::Color::Red);
     solveButton.setPosition(500, 20);
-
     solveText.setFont(font);
     solveText.setString("Solve");
     solveText.setCharacterSize(20);
@@ -78,12 +130,17 @@ void Game::handleMouseClick(int x, int y) {
             showMenu = false;
         }
         else if (loadGameButton.getGlobalBounds().contains(x, y)) {
-            // Aquí agregarías la lógica para cargar un Sudoku desde un archivo
+            loadGame();
             showMenu = false;
         }
+        
     }
     else if (solveButton.getGlobalBounds().contains(x, y)) {
         board.solve();
+    }
+    else if (saveGameButton.getGlobalBounds().contains(x, y)) {
+        std::cout << "Botón de Guardar presionado.\n"; // Mensaje de depuración
+        saveGame();
     }
 }
 
@@ -132,6 +189,8 @@ void Game::render() {
         drawNumbers();
         window.draw(solveButton);
         window.draw(solveText);
+        window.draw(saveGameButton);
+        window.draw(saveGameText);
     }
 
     window.display();

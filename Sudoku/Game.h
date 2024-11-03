@@ -20,7 +20,8 @@ private:
     void handleMouseClick(int x, int y);
     void saveGame();
     void loadGame();
-
+    void displayMessage(const string& message); // Nueva función para mostrar mensajes
+    void giveHint();
 
     sf::RenderWindow window;
     sf::Font font;
@@ -31,6 +32,7 @@ private:
     int selectedCol;
 
     bool showMenu;
+    bool gameCompleted;
     sf::RectangleShape newGameButton;
     sf::Text newGameText;
     sf::RectangleShape loadGameButton;
@@ -39,6 +41,8 @@ private:
     sf::Text saveGameText;
     sf::RectangleShape solveButton;
     sf::Text solveText;
+    sf::RectangleShape hintButton; // Nuevo botón para la pista
+    sf::Text hintText;
 };
 
 #endif // GAME_H

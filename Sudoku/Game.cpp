@@ -95,6 +95,15 @@ void Game::initializeButtons() {
     solveText.setString("Solve");
     solveText.setCharacterSize(20);
     solveText.setPosition(510, 25);
+
+    // Botón de Pista
+    hintButton.setSize(sf::Vector2f(100, 30));
+    hintButton.setFillColor(sf::Color::Green);
+    hintButton.setPosition(230, 20); 
+    hintText.setFont(font);
+    hintText.setString("Pista");
+    hintText.setCharacterSize(20);
+    hintText.setPosition(240, 25);
 }
 
 
@@ -128,19 +137,23 @@ void Game::handleMouseClick(int x, int y) {
         if (newGameButton.getGlobalBounds().contains(x, y)) {
             board.generateNewPuzzle();
             showMenu = false;
+            gameCompleted = false;
         }
         else if (loadGameButton.getGlobalBounds().contains(x, y)) {
             loadGame();
             showMenu = false;
+            gameCompleted = false;
         }
-        
     }
     else if (solveButton.getGlobalBounds().contains(x, y)) {
         board.solve();
+        displayMessage("Sudoku completado con ayuda de la máquina.");
     }
     else if (saveGameButton.getGlobalBounds().contains(x, y)) {
-        std::cout << "Botón de Guardar presionado.\n"; // Mensaje de depuración
         saveGame();
+    }
+    else if (hintButton.getGlobalBounds().contains(x, y)) {
+        giveHint(); 
     }
 }
 
@@ -160,19 +173,92 @@ void Game::handlePlayerInput(sf::Keyboard::Key key) {
     else if (key >= sf::Keyboard::Num1 && key <= sf::Keyboard::Num9) {
         int num = key - sf::Keyboard::Num1 + 1;
 
-        // Convert selectedRow and selectedCol to the appropriate block and inner indices
+        // Determina la celda en términos de subcuadro
         int blockRow = selectedRow / 3;
         int blockCol = selectedCol / 3;
         int innerRow = selectedRow % 3;
         int innerCol = selectedCol % 3;
 
-        // Asigna el número a la celda específica usando la estructura CellBlock
-        board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol) = num;
+        // Verifica si la celda es fija y evita cambios
+        if (board.isCellFixed(selectedRow, selectedCol)) {
+            std::cout << "No se puede modificar una celda fija.\n";
+            return;
+        }
+
+        // Verifica si el número ya está en la celda seleccionada
+        if (board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol) == num) {
+            std::cout << "El número ya está en la celda.\n";
+            return;
+        }
+
+        // Usa isSafe para verificar las reglas de Sudoku
+        if (board.isSafe(selectedRow, selectedCol, num)) {
+            // Si es seguro, coloca el número en la celda específica
+            board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol) = num;
+        }
+        else {
+            std::cout << "Movimiento inválido según las reglas de Sudoku.\n";
+        }
+    }
+}
+
+void Game::giveHint() {
+    int row, col;
+    if (!board.findEmptyLocation(row, col)) {
+        std::cout << "No hay celdas vacías para dar una pista.\n";
+        return;
+    }
+
+    // Guarda el estado original
+    auto& grid = board.getGrid();
+    std::array<std::array<CellBlock, 3>, 3> originalGrid = grid;
+
+    // Resuelve el tablero temporalmente para obtener el valor correcto en (row, col)
+    if (board.solve()) {
+        int blockRow = row / 3;
+        int blockCol = col / 3;
+        int innerRow = row % 3;
+        int innerCol = col % 3;
+        int hint = grid[blockRow][blockCol].getCell(innerRow, innerCol);
+
+        // Restaura el estado original
+        grid = originalGrid;
+
+        // Coloca la pista en la celda seleccionada
+        board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol) = hint;
+        std::cout << "Pista: La celda en (" << row << ", " << col << ") debería ser " << hint << ".\n";
+    }
+    else {
+        std::cout << "No se puede dar una pista en este momento.\n";
     }
 }
 
 void Game::update() {
-    // Aquí puedes agregar lógica adicional para actualizar el estado del juego
+    if (!gameCompleted) {
+        bool isComplete = true;
+        for (int row = 0; row < 9; ++row) {
+            for (int col = 0; col < 9; ++col) {
+                int blockRow = row / 3;
+                int blockCol = col / 3;
+                int innerRow = row % 3;
+                int innerCol = col % 3;
+                int num = board.getGrid()[blockRow][blockCol].getCell(innerRow, innerCol);
+
+                // Verifica si alguna celda está vacía o si el número en ella no es válido
+                if (num == 0 || !board.isSafe(row, col, num)) {
+                    isComplete = false;
+                    break;
+                }
+            }
+            if (!isComplete) break;
+        }
+
+        // Si el tablero está completo y válido
+        if (isComplete) {
+            gameCompleted = true;
+            displayMessage("¡Felicidades! Completaste el Sudoku correctamente.");
+        }
+    }
 }
 
 void Game::render() {
@@ -191,6 +277,8 @@ void Game::render() {
         window.draw(solveText);
         window.draw(saveGameButton);
         window.draw(saveGameText);
+        window.draw(hintButton);
+        window.draw(hintText);
     }
 
     window.display();
@@ -231,4 +319,38 @@ void Game::drawNumbers() {
     highlight.setFillColor(sf::Color(0, 0, 255, 50)); // Azul semi-transparente
     highlight.setPosition(50 + selectedCol * 60, 50 + selectedRow * 60);
     window.draw(highlight);
+}
+
+void Game::displayMessage(const std::string& message) {
+    sf::RenderWindow messageWindow(sf::VideoMode(400, 200), "Mensaje");
+    sf::Text messageText;
+    messageText.setFont(font);
+    messageText.setString(message);
+    messageText.setCharacterSize(24);
+    messageText.setFillColor(sf::Color::Black);
+    messageText.setPosition(50, 80); // Centrar el texto en la ventana
+
+    // Animación simple de parpadeo
+    bool show = true;
+    sf::Clock clock;
+    while (messageWindow.isOpen()) {
+        sf::Event event;
+        while (messageWindow.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                messageWindow.close();
+            }
+        }
+
+        // Parpadeo del texto
+        if (clock.getElapsedTime().asSeconds() > 0.5) {
+            show = !show;
+            clock.restart();
+        }
+
+        messageWindow.clear(sf::Color::White);
+        if (show) {
+            messageWindow.draw(messageText);
+        }
+        messageWindow.display();
+    }
 }

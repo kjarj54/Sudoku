@@ -16,17 +16,37 @@ Board::Board() {
 }
 
 void Board::generateNewPuzzle() {
-    srand(time(0));
-    for (int blockRow = 0; blockRow < 3; ++blockRow) {
-        for (int blockCol = 0; blockCol < 3; ++blockCol) {
-            int num = (rand() % 9) + 1;
-            int row = rand() % 3;
-            int col = rand() % 3;
-            if (isSafe(blockRow * 3 + row, blockCol * 3 + col, num)) {
-                grid[blockRow][blockCol].getCell(row, col) = num;
-            }
+    // Genera un tablero completo
+    solve();
+
+    // Marca todas las celdas como fijas en este punto
+    for (int row = 0; row < 9; ++row) {
+        for (int col = 0; col < 9; ++col) {
+            isFixed[row][col] = true;
         }
     }
+
+    // Elimina números para crear el puzzle
+    int cellsToRemove = 40;
+    while (cellsToRemove > 0) {
+        int row = rand() % 9;
+        int col = rand() % 9;
+
+        int blockRow = row / 3;
+        int blockCol = col / 3;
+        int innerRow = row % 3;
+        int innerCol = col % 3;
+
+        if (grid[blockRow][blockCol].getCell(innerRow, innerCol) != 0) {
+            grid[blockRow][blockCol].getCell(innerRow, innerCol) = 0;
+            isFixed[row][col] = false; // Marca la celda como no fija
+            cellsToRemove--;
+        }
+    }
+}
+
+bool Board::isCellFixed(int row, int col) const {
+    return isFixed[row][col];
 }
 
 bool Board::solve() {
